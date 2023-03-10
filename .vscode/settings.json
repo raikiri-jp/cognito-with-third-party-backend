@@ -1,0 +1,13 @@
+{
+  "cSpell.words": [
+    "autoload",
+    "Autoloaded",
+    "fakerphp",
+    "guzzlehttp",
+    "Laravel",
+    "nunomaduro",
+    "phpunit",
+    "spatie"
+  ],
+  "intelephense.format.braces": "k&r"
+}
