@@ -5,9 +5,12 @@
     "fakerphp",
     "guzzlehttp",
     "Laravel",
+    "Miyahara",
     "nunomaduro",
     "phpunit",
-    "spatie"
+    "spatie",
+    "Yuuki"
   ],
+  "editor.rulers": [100],
   "intelephense.format.braces": "k&r"
 }
