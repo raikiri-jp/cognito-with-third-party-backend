@@ -9,7 +9,7 @@ class AppServiceProvider extends ServiceProvider {
    * Register any application services.
    */
   public function register(): void {
-    //
+    $this->app->bind('CognitoService', App\Services\Cognito\CognitoService::class);
   }
 
   /**
