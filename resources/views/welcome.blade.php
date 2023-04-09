@@ -8,11 +8,28 @@
 </head>
 
 <body class="antialiased">
-  <div>Laravel v{{ Illuminate\Foundation\Application::VERSION }} (PHP v{{ PHP_VERSION }})</div>
-  <ul>
-    <li><a href="/login">LOGIN</a></li>
-    <li><a href="/logout">LOGOUT</a></li>
-  </ul>
+  <fieldset>
+    <legend>MENU</legend>
+    <ul>
+      <li><a href="/login">LOGIN</a></li>
+      <li><a href="/logout">LOGOUT</a></li>
+    </ul>
+  </fieldset>
+
+  @if ($loggedIn)
+  <fieldset>
+    <legend>USER</legend>
+    <ul>
+      <li>Sub: {{ @$userInfo['sub'] }}</li>
+      <li>Username: {{ @$userInfo['username'] }}</li>
+      <li>Department: {{ @$userInfo['department'] }}</li>
+      <li>Position: {{ @$userInfo['position'] }}</li>
+      <li>name: {{ @$userInfo['name'] }}</li>
+    </ul>
+  </fieldset>
+  @endif
+
+  <p>Laravel v{{ Illuminate\Foundation\Application::VERSION }} (PHP v{{ PHP_VERSION }})</p>
 </body>
 
 </html>
