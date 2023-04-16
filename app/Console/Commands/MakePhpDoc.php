@@ -56,12 +56,12 @@ class MakePhpDoc extends Command {
       $phpDoc .= " * @property mixed $column\n";
     }
     $phpDoc .= " *\n";
-    $phpDoc .= " * @method static $model find(\$id)\n";
-    $phpDoc .= " * @method static $model create(array \$attributes = [])\n";
-    $phpDoc .= " * @method static $model updateOrCreate(array \$attributes, array \$values = [])\n";
-    $phpDoc .= " * @method static $model firstOrCreate(array \$attributes, array \$values = [])\n";
-    $phpDoc .= " * @method static $model firstOrNew(array \$attributes, array \$values = [])\n";
-    $phpDoc .= " * @method static $model update(array \$attributes = [], array \$options = [])\n";
+    $phpDoc .= " * @method static \\$model find(\$id)\n";
+    $phpDoc .= " * @method static \\$model create(array \$attributes = [])\n";
+    $phpDoc .= " * @method static \\$model updateOrCreate(array \$attributes, array \$values = [])\n";
+    $phpDoc .= " * @method static \\$model firstOrCreate(array \$attributes, array \$values = [])\n";
+    $phpDoc .= " * @method static \\$model firstOrNew(array \$attributes, array \$values = [])\n";
+    $phpDoc .= " * @method static \\$model update(array \$attributes = [], array \$options = [])\n";
     $phpDoc .= " */\n\n";
 
     // クラス宣言の直前に PHPDoc を挿入する
