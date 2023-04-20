@@ -8,6 +8,27 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
+/**
+ * Class App\Models\User
+ *
+ * @property mixed id
+ * @property mixed name
+ * @property mixed email
+ * @property mixed email_verified_at
+ * @property mixed password
+ * @property mixed remember_token
+ * @property mixed created_at
+ * @property mixed updated_at
+ * @property mixed sub
+ *
+ * @method static \App\Models\User find($id)
+ * @method static \App\Models\User create(array $attributes = [])
+ * @method static \App\Models\User updateOrCreate(array $attributes, array $values = [])
+ * @method static \App\Models\User firstOrCreate(array $attributes, array $values = [])
+ * @method static \App\Models\User firstOrNew(array $attributes, array $values = [])
+ * @method static \App\Models\User update(array $attributes = [], array $options = [])
+ */
+
 class User extends Authenticatable {
   use HasApiTokens, HasFactory, Notifiable;
 
@@ -20,6 +41,7 @@ class User extends Authenticatable {
     'name',
     'email',
     'password',
+    'sub',
   ];
 
   /**

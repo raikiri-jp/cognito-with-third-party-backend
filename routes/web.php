@@ -1,8 +1,8 @@
 <?php
 
 use App\Services\Cognito\CognitoService;
-use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -17,22 +17,15 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::name('frontend')->get('/', function () {
-  $loggedIn = false;
-  $userInfo = [];
-  try {
-    CognitoService::refreshToken();
-    $userInfo = CognitoService::getUser();
-    $loggedIn = true;
-  } catch (AuthenticationException) {
-    // return redirect(route('login'));
-  }
+  $loggedIn = Auth::check();
+  $userInfo = $loggedIn ? Auth::getUser() : [];
   return view('welcome', [
     'loggedIn' => $loggedIn,
     'userInfo' => $userInfo,
   ]);
 });
 
-// ログイン
+// ログイン画面
 Route::name('login')->get('/login', function () {
   // ログイン画面にリダイレクト
   return CognitoService::toLogin(route('auth'));
@@ -42,13 +35,11 @@ Route::name('login')->get('/login', function () {
 Route::name('logout')->get('/logout', function () {
   // ログアウト後に任意の画面を表示
   return CognitoService::logout(route('frontend'));
-
-  // ログアウト後にログイン画面を表示
-  // return CognitoService::logoutAndLogin(route('auth'));
 });
 
+// 認可
 Route::name('auth')->get('/auth', function (Request $request) {
-  // 認可
-  CognitoService::authorize($request->input('code'), route('auth'));
+  $user = CognitoService::authorize($request->input('code'), route('auth'));
+  Auth::login($user);
   return redirect(route('frontend'));
 });

@@ -21,9 +21,6 @@
     <legend>USER</legend>
     <ul>
       <li>Sub: {{ @$userInfo['sub'] }}</li>
-      <li>Username: {{ @$userInfo['username'] }}</li>
-      <li>Department: {{ @$userInfo['department'] }}</li>
-      <li>Position: {{ @$userInfo['position'] }}</li>
       <li>name: {{ @$userInfo['name'] }}</li>
     </ul>
   </fieldset>
