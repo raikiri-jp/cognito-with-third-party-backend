@@ -40,10 +40,8 @@ class CognitoService {
     // セッションを破棄
     session()->flush();
     // CognitoのUIを利用してログイン
-    $domain = env('COGNITO_OAUTH2_DOMAIN');
-    $clientId = env('COGNITO_APP_CLIENT_ID');
-    $uri = "https://$domain/login?" . http_build_query([
-      'client_id' => $clientId,
+    $uri = env('COGNITO_OAUTH2_DOMAIN') . '/login?' . http_build_query([
+      'client_id' => env('COGNITO_APP_CLIENT_ID'),
       'response_type' => 'code',
       'redirect_uri' => $redirectUri,
     ], '', '&', PHP_QUERY_RFC1738);
@@ -55,15 +53,14 @@ class CognitoService {
    *
    * @param string $redirectUri リダイレクト先URI
    * @return \Illuminate\Routing\Redirector|\Illuminate\Http\RedirectResponse
+   * @see https://docs.aws.amazon.com/ja_jp/cognito/latest/developerguide/logout-endpoint.html
    */
   public static function logout(string $redirectUri) {
     // セッションを破棄
     session()->flush();
     // Cognito側でもログアウトし、指定のURIにリダイレクトする
-    $domain = env('COGNITO_OAUTH2_DOMAIN');
-    $clientId = env('COGNITO_APP_CLIENT_ID');
-    $uri = "https://$domain/logout?" . http_build_query([
-      'client_id' => $clientId,
+    $uri = env('COGNITO_OAUTH2_DOMAIN') . '/logout?' . http_build_query([
+      'client_id' => env('COGNITO_APP_CLIENT_ID'),
       'logout_uri' => $redirectUri,
     ], '', '&', PHP_QUERY_RFC1738);
     return redirect($uri);
@@ -75,15 +72,14 @@ class CognitoService {
    * @param string $redirectUri ログイン後のリダイレクト先URI
    * @param array $scopes スコープ (スコープはUserInfo エンドポイントで取得できる内容に影響する)
    * @return \Illuminate\Routing\Redirector|\Illuminate\Http\RedirectResponse
+   * @see https://docs.aws.amazon.com/ja_jp/cognito/latest/developerguide/logout-endpoint.html
    */
   public static function logoutAndLogin(string $redirectUri, array $scopes = []) {
     // セッションを破棄
     session()->flush();
     // Cognito側でもログアウトして、ログイン画面を表示する
-    $domain = env('COGNITO_OAUTH2_DOMAIN');
-    $clientId = env('COGNITO_APP_CLIENT_ID');
-    $uri = "https://$domain/logout?" . http_build_query([
-      'client_id' => $clientId,
+    $uri = env('COGNITO_OAUTH2_DOMAIN') . '/logout?' . http_build_query([
+      'client_id' => env('COGNITO_APP_CLIENT_ID'),
       'response_type' => 'code',
       'redirect_uri' => $redirectUri,
     ], '', '&', PHP_QUERY_RFC1738);
@@ -152,13 +148,13 @@ class CognitoService {
    * @param string $redirectUri ログイン時に指定したリダイレクトURI (ログイン後の遷移先)
    * @return array `id_token`、`access_token`、`refresh_token`、`expires_in` を含む配列
    * @throws AuthenticationException An error occurred during authorization
+   * @see https://docs.aws.amazon.com/ja_jp/cognito/latest/developerguide/token-endpoint.html
    */
   private static function requestToken(string $authorizationCode, string $redirectUri): array {
     // トークンエンドポイント
-    $domain = env('COGNITO_OAUTH2_DOMAIN');
+    $uri = env('COGNITO_OAUTH2_DOMAIN') . '/oauth2/token';
     $clientId = env('COGNITO_APP_CLIENT_ID');
     $secret = env('COGNITO_APP_SECRET');
-    $uri = "https://$domain/oauth2/token";
     $headers = [
       'Authorization' => 'Basic ' . base64_encode($clientId . ':' . $secret)
     ];
@@ -187,10 +183,11 @@ class CognitoService {
    *
    * @param string $accessToken Access Token
    * @return array ユーザ属性
+   * @see https://docs.aws.amazon.com/ja_jp/cognito/latest/developerguide/userinfo-endpoint.html
    */
   private static function requestUserInfo(string $accessToken) {
-    $domain = env('COGNITO_OAUTH2_DOMAIN');
-    $uri = "https://$domain/oauth2/userInfo";
+    // UserInfo エンドポイント
+    $uri = env('COGNITO_OAUTH2_DOMAIN') . '/oauth2/userInfo';
     $userInfo = Http::withToken($accessToken)->get($uri);
     $data = [
       'sub' => $userInfo['sub'],
@@ -211,6 +208,6 @@ class CognitoService {
    * @return void
    */
   public static function refreshAccessToken(): void {
-    // FIXME リフレッシュトークンを使用してアクセストークンを更新する
+    // TODO リフレッシュトークンを使用してアクセストークンを更新する
   }
 }
