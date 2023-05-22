@@ -1,7 +1,6 @@
 <?php
 
-use App\Services\Cognito\CognitoService;
-use Illuminate\Http\Request;
+use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// Welcomeページ表示
 Route::name('frontend')->get('/', function () {
   $loggedIn = Auth::check();
   $userInfo = $loggedIn ? Auth::getUser() : [];
@@ -24,22 +24,11 @@ Route::name('frontend')->get('/', function () {
     'userInfo' => $userInfo,
   ]);
 });
-
-// ログイン画面
-Route::name('login')->get('/login', function () {
-  // ログイン画面にリダイレクト
-  return CognitoService::toLogin(route('auth'));
-});
-
-// ログアウト
-Route::name('logout')->get('/logout', function () {
-  // ログアウト後に任意の画面を表示
-  return CognitoService::logout(route('frontend'));
-});
-
-// 認可
-Route::name('auth')->get('/auth', function (Request $request) {
-  $user = CognitoService::authorize($request->input('code'), route('auth'));
-  Auth::login($user);
-  return redirect(route('frontend'));
-});
+// ログイン画面の表示
+Route::name('login')->get('/login', [AuthController::class, 'login']);
+// ログアウト後にWelcomeページ表示
+Route::name('logout')->get('/logout', [AuthController::class, 'logout']);
+// ログアウト後にログイン画面を表示
+Route::get('/re-login', [AuthController::class, 'reLogin']);
+// 認可処理 (認証成功時の遷移先)
+Route::name('auth')->get('/auth', [AuthController::class, 'auth']);

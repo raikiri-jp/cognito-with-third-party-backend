@@ -2,13 +2,7 @@
 
 namespace App\Services\Cognito;
 
-use App\Models\LoginHistory;
-use App\Models\Token;
-use App\Models\User;
-use Carbon\Carbon;
-use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Request;
 
 /**
  * Amazon Cognito Service.
@@ -27,115 +21,49 @@ class CognitoService {
   // }
 
   /**
-   * ログイン画面の表示.
-   *
-   * Amazon Cognito によりホストされたログイン画面を表示する。
+   * ログイン画面のURIを求める.
    *
    * @param string $redirectUri ログイン後のリダイレクト先URI
    * @param array $scopes スコープ (スコープはUserInfo エンドポイントで取得できる内容に影響する)
-   * @return \Illuminate\Routing\Redirector|\Illuminate\Http\RedirectResponse
+   * @return string Amazon Cognito によりホストされたログイン画面のURI
    * @see https://docs.aws.amazon.com/ja_jp/cognito/latest/developerguide/cognito-user-pools-app-integration.html
    */
-  public static function toLogin(string $redirectUri, array $scopes = []) {
-    // セッションを破棄
-    session()->flush();
-    // CognitoのUIを利用してログイン
-    $uri = env('COGNITO_OAUTH2_DOMAIN') . '/login?' . http_build_query([
+  public static function getLoginUri(string $redirectUri, array $scopes = []) {
+    return env('COGNITO_OAUTH2_DOMAIN') . '/login?' . http_build_query([
       'client_id' => env('COGNITO_APP_CLIENT_ID'),
       'response_type' => 'code',
       'redirect_uri' => $redirectUri,
     ], '', '&', PHP_QUERY_RFC1738);
-    return redirect($uri);
   }
 
   /**
-   * ログアウト後に任意の画面にリダイレクト.
+   * ログアウトエンドポイントを経由してログイン画面を表示するURIを求める.
    *
-   * @param string $redirectUri リダイレクト先URI
-   * @return \Illuminate\Routing\Redirector|\Illuminate\Http\RedirectResponse
+   * @param string $redirectUri ログイン後のリダイレクト先URI
+   * @param array $scopes スコープ (スコープはUserInfo エンドポイントで取得できる内容に影響する)
+   * @return string Amazon Cognito によりホストされたログイン画面のURI (ログアウトエンドポイントを経由)
    * @see https://docs.aws.amazon.com/ja_jp/cognito/latest/developerguide/logout-endpoint.html
    */
-  public static function logout(string $redirectUri) {
-    // セッションを破棄
-    session()->flush();
-    // Cognito側でもログアウトし、指定のURIにリダイレクトする
-    $uri = env('COGNITO_OAUTH2_DOMAIN') . '/logout?' . http_build_query([
+  public static function getReLoginUri(string $redirectUri, array $scopes = []) {
+    return env('COGNITO_OAUTH2_DOMAIN') . '/logout?' . http_build_query([
+      'client_id' => env('COGNITO_APP_CLIENT_ID'),
+      'response_type' => 'code',
+      'redirect_uri' => $redirectUri,
+    ], '', '&', PHP_QUERY_RFC1738);
+  }
+
+  /**
+   * ログアウトエンドポイントのURIを求める.
+   *
+   * @param string $redirectUri リダイレクト先URI
+   * @return string ログアウトエンドポイントのURI
+   * @see https://docs.aws.amazon.com/ja_jp/cognito/latest/developerguide/logout-endpoint.html
+   */
+  public static function getLogoutUri(string $redirectUri) {
+    return env('COGNITO_OAUTH2_DOMAIN') . '/logout?' . http_build_query([
       'client_id' => env('COGNITO_APP_CLIENT_ID'),
       'logout_uri' => $redirectUri,
     ], '', '&', PHP_QUERY_RFC1738);
-    return redirect($uri);
-  }
-
-  /**
-   * ログアウト後にログイン画面を表示.
-   *
-   * @param string $redirectUri ログイン後のリダイレクト先URI
-   * @param array $scopes スコープ (スコープはUserInfo エンドポイントで取得できる内容に影響する)
-   * @return \Illuminate\Routing\Redirector|\Illuminate\Http\RedirectResponse
-   * @see https://docs.aws.amazon.com/ja_jp/cognito/latest/developerguide/logout-endpoint.html
-   */
-  public static function logoutAndLogin(string $redirectUri, array $scopes = []) {
-    // セッションを破棄
-    session()->flush();
-    // Cognito側でもログアウトして、ログイン画面を表示する
-    $uri = env('COGNITO_OAUTH2_DOMAIN') . '/logout?' . http_build_query([
-      'client_id' => env('COGNITO_APP_CLIENT_ID'),
-      'response_type' => 'code',
-      'redirect_uri' => $redirectUri,
-    ], '', '&', PHP_QUERY_RFC1738);
-    return redirect($uri);
-  }
-
-  /**
-   * 認可処理.
-   *
-   * 認可コードは1度使用すると使えなくなるため、同じURIにアクセスするとエラーとなる。
-   * 当メソッド利用後に別URIにリダイレクトすることでエラーを回避できる。
-   *
-   * @param string $authorizationCode 認可コード
-   * @param string $redirectUri ログイン時に指定したリダイレクトURI (ログイン後の遷移先)
-   * @throws AuthenticationException An error occurred during authorization
-   * @return User ユーザ情報
-   * @see https://docs.aws.amazon.com/ja_jp/cognito/latest/developerguide/token-endpoint.html
-   */
-  public static function authorize(string $authorizationCode, string $redirectUri): User {
-    // 認可コードとトークンを交換
-    $tokens = static::requestToken($authorizationCode, $redirectUri);
-    $accessToken = $tokens['access_token'];
-    $refreshToken = $tokens['refresh_token'];
-    $expiresIn = $tokens['expires_in'];
-
-    // UserInfo エンドポイントよりユーザ属性を取得
-    $userInfo = static::requestUserInfo($accessToken);
-    $sub = $userInfo['sub'];
-    $email = $userInfo['email'];
-    $name = $userInfo['name'];
-
-    // ユーザ情報をユーザテーブルに登録
-    $user = User::updateOrCreate([
-      'email' => $email
-    ], [
-      'name' => $name,
-      'sub' => $sub,
-    ]);
-
-    // アクセストークンとリフレッシュトークンをトークンテーブルに登録
-    $token = new Token();
-    $token->user_id = $user->id;
-    $token->access_token = $accessToken;
-    $token->refresh_token = $refreshToken;
-    $token->expires_at = Carbon::now()->addSeconds($expiresIn);
-    $token->save();
-
-    // ログイン履歴をログイン履歴テーブルに登録
-    // TODO ログイン履歴が肥大化しすぎないよう、程よいところで削除する仕組みを作ること
-    $loginHistory = new LoginHistory();
-    $loginHistory->user_id = $user->id;
-    $loginHistory->ip_address = Request::ip();
-    $loginHistory->login_at = Carbon::now();
-    $loginHistory->save();
-
-    return $user;
   }
 
   /**
@@ -147,10 +75,10 @@ class CognitoService {
    * @param string $authorizationCode 認可コード
    * @param string $redirectUri ログイン時に指定したリダイレクトURI (ログイン後の遷移先)
    * @return array `id_token`、`access_token`、`refresh_token`、`expires_in` を含む配列
-   * @throws AuthenticationException An error occurred during authorization
+   * @throws \Illuminate\Auth\AuthenticationException An error occurred during authorization
    * @see https://docs.aws.amazon.com/ja_jp/cognito/latest/developerguide/token-endpoint.html
    */
-  private static function requestToken(string $authorizationCode, string $redirectUri): array {
+  public static function requestToken(string $authorizationCode, string $redirectUri): array {
     // トークンエンドポイント
     $uri = env('COGNITO_OAUTH2_DOMAIN') . '/oauth2/token';
     $clientId = env('COGNITO_APP_CLIENT_ID');
@@ -167,7 +95,7 @@ class CognitoService {
     $response = $cognitoResponse->json();
     if ($cognitoResponse->failed()) {
       $errorMessage = $response['error_description'] ?? 'An error occurred during authorization';
-      throw new AuthenticationException($errorMessage);
+      throw new \Illuminate\Auth\AuthenticationException($errorMessage);
     }
 
     return [
@@ -185,13 +113,13 @@ class CognitoService {
    * @return array ユーザ属性
    * @see https://docs.aws.amazon.com/ja_jp/cognito/latest/developerguide/userinfo-endpoint.html
    */
-  private static function requestUserInfo(string $accessToken) {
+  public static function requestUserInfo(string $accessToken) {
     // UserInfo エンドポイント
     $uri = env('COGNITO_OAUTH2_DOMAIN') . '/oauth2/userInfo';
     $userInfo = Http::withToken($accessToken)->get($uri);
-    $data = [
+    return [
       'sub' => $userInfo['sub'],
-      'email' => $userInfo['email'],
+      'email' => @$userInfo['email'],
       'username' => $userInfo['username'],
       'name' => @$userInfo['name'],
       'family_name' => @$userInfo['family_name'],
@@ -199,7 +127,6 @@ class CognitoService {
       'department' => @$userInfo['custom:department'],
       'position' => @$userInfo['custom:position'],
     ];
-    return $data;
   }
 
   /**
@@ -209,5 +136,6 @@ class CognitoService {
    */
   public static function refreshAccessToken(): void {
     // TODO リフレッシュトークンを使用してアクセストークンを更新する
+    throw new \RuntimeException('Not implemented');
   }
 }
