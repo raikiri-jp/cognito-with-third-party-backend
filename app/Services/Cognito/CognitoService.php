@@ -28,7 +28,7 @@ class CognitoService {
    * @return string Amazon Cognito によりホストされたログイン画面のURI
    * @see https://docs.aws.amazon.com/ja_jp/cognito/latest/developerguide/cognito-user-pools-app-integration.html
    */
-  public static function getLoginUri(string $redirectUri, array $scopes = []) {
+  public static function getLoginUri(string $redirectUri, array $scopes = []): string {
     return env('COGNITO_OAUTH2_DOMAIN') . '/login?' . http_build_query([
       'client_id' => env('COGNITO_APP_CLIENT_ID'),
       'response_type' => 'code',
@@ -44,7 +44,7 @@ class CognitoService {
    * @return string Amazon Cognito によりホストされたログイン画面のURI (ログアウトエンドポイントを経由)
    * @see https://docs.aws.amazon.com/ja_jp/cognito/latest/developerguide/logout-endpoint.html
    */
-  public static function getReLoginUri(string $redirectUri, array $scopes = []) {
+  public static function getReLoginUri(string $redirectUri, array $scopes = []): string {
     return env('COGNITO_OAUTH2_DOMAIN') . '/logout?' . http_build_query([
       'client_id' => env('COGNITO_APP_CLIENT_ID'),
       'response_type' => 'code',
@@ -59,7 +59,7 @@ class CognitoService {
    * @return string ログアウトエンドポイントのURI
    * @see https://docs.aws.amazon.com/ja_jp/cognito/latest/developerguide/logout-endpoint.html
    */
-  public static function getLogoutUri(string $redirectUri) {
+  public static function getLogoutUri(string $redirectUri): string {
     return env('COGNITO_OAUTH2_DOMAIN') . '/logout?' . http_build_query([
       'client_id' => env('COGNITO_APP_CLIENT_ID'),
       'logout_uri' => $redirectUri,
@@ -113,7 +113,7 @@ class CognitoService {
    * @return array ユーザ属性
    * @see https://docs.aws.amazon.com/ja_jp/cognito/latest/developerguide/userinfo-endpoint.html
    */
-  public static function requestUserInfo(string $accessToken) {
+  public static function requestUserInfo(string $accessToken): array {
     // UserInfo エンドポイント
     $uri = env('COGNITO_OAUTH2_DOMAIN') . '/oauth2/userInfo';
     $userInfo = Http::withToken($accessToken)->get($uri);

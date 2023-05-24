@@ -3,25 +3,18 @@
 namespace Tests\Feature;
 
 use App\Services\Cognito\CognitoService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class CognitoServiceTest extends TestCase {
   protected function setUp(): void {
     parent::setUp();
-
-    env('COGNITO_OAUTH2_DOMAIN', 'https://example.com');
-    env('COGNITO_APP_CLIENT_ID', 'your_client_id');
-    env('COGNITO_APP_SECRET', 'your_client_secret');
   }
 
   public function testGetLoginUri(): void {
     $redirectUri = 'https://example.com/callback';
-    $expectedUri = 'https://example.com/login?' .
-      'client_id=your_client_id' .
+    $expectedUri = 'https://example.com/login' .
+      '?client_id=your_client_id' .
       '&response_type=code' .
       '&redirect_uri=' . urlencode($redirectUri);
 
@@ -32,8 +25,8 @@ class CognitoServiceTest extends TestCase {
 
   public function testGetReLoginUri(): void {
     $redirectUri = 'https://example.com/callback';
-    $expectedUri = 'https://example.com/logout?' .
-      'client_id=your_client_id' .
+    $expectedUri = 'https://example.com/logout' .
+      '?client_id=your_client_id' .
       '&response_type=code' .
       '&redirect_uri=' . urlencode($redirectUri);
 
@@ -44,8 +37,8 @@ class CognitoServiceTest extends TestCase {
 
   public function testGetLogoutUri(): void {
     $redirectUri = 'https://example.com/logout';
-    $expectedUri = 'https://example.com/logout?' .
-      'client_id=your_client_id' .
+    $expectedUri = 'https://example.com/logout' .
+      '?client_id=your_client_id' .
       '&logout_uri=' . urlencode($redirectUri);
 
     $uri = CognitoService::getLogoutUri($redirectUri);

@@ -13,12 +13,14 @@ use Illuminate\Support\Facades\Request;
 
 /**
  * Class AuthController
+ *
  * @package App\Http\Controllers
+ * @author Miyahara Yuuki <59301668+raikiri-jp@users.noreply.github.com>
  */
 class AuthController extends Controller {
 
   /**
-   * ログイン画面の表示する。
+   * ログイン画面の表示.
    *
    * Amazon Cognito によりホストされたログイン画面を表示する。
    *
@@ -34,7 +36,7 @@ class AuthController extends Controller {
   }
 
   /**
-   * ログアウト後にログイン画面を表示する。
+   * ログアウト後にログイン画面を表示.
    *
    * ログアウトエンドポイント経由で Amazon Cognito によりホストされたログイン画面を表示する。
    *
@@ -50,7 +52,7 @@ class AuthController extends Controller {
   }
 
   /**
-   * ログアウト後に任意の画面を表示する。
+   * ログアウト後に任意の画面を表示.
    *
    * @param HttpRequest $request
    * @return \Illuminate\Routing\Redirector|\Illuminate\Http\RedirectResponse
@@ -117,7 +119,7 @@ class AuthController extends Controller {
   }
 
   /**
-   * ログイン済みユーザの情報を返す。
+   * ログイン済みユーザの情報を取得.
    *
    * @param HttpRequest $request
    * @return \Illuminate\Http\JsonResponse
@@ -136,7 +138,7 @@ class AuthController extends Controller {
   }
 
   /**
-   * ログイン済みユーザの情報を返す。
+   * ログイン済みユーザの情報を取得.
    *
    * @param HttpRequest $request
    * @return void
