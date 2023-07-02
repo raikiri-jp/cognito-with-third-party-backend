@@ -16,7 +16,8 @@ return new class extends Migration {
       $table->timestamp('login_at');
       $table->timestamps();
 
-      $table->foreign('user_id')->references('id')->on('users');
+      // ユーザを消しても履歴は残す
+      // $table->foreign('user_id')->references('id')->on('users');
     });
   }
 
