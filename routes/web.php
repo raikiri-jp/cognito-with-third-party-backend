@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\AuthController;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\IndexController;
+use App\Http\Controllers\LoginController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,20 +15,16 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Welcomeページ表示
-Route::name('frontend')->get('/', function () {
-  $loggedIn = Auth::check();
-  $userInfo = $loggedIn ? Auth::getUser() : [];
-  return view('welcome', [
-    'loggedIn' => $loggedIn,
-    'userInfo' => $userInfo,
-  ]);
-});
 // ログイン画面の表示
-Route::name('login')->get('/login', [AuthController::class, 'login']);
+Route::name('login')->get('/login', [LoginController::class, 'login']);
 // ログアウト後にWelcomeページ表示
-Route::name('logout')->get('/logout', [AuthController::class, 'logout']);
+Route::name('logout')->get('/logout', [LoginController::class, 'logout']);
 // ログアウト後にログイン画面を表示
-Route::get('/re-login', [AuthController::class, 'reLogin']);
-// 認可処理 (認証成功時の遷移先)
-Route::name('auth')->get('/auth', [AuthController::class, 'auth']);
+Route::get('/re-login', [LoginController::class, 'reLogin']);
+
+// Frontend
+Route::name('auth')->get('/auth', [IndexController::class, 'frontend']);
+Route::name('frontend')->get('/', [IndexController::class, 'frontend'])
+  ->where('any', '.*');
+Route::get('/{any}', [IndexController::class, 'frontend'])
+  ->where('any', '.*');

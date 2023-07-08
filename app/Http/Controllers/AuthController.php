@@ -20,63 +20,18 @@ use Illuminate\Support\Facades\Request;
 class AuthController extends Controller {
 
   /**
-   * ログイン画面の表示.
-   *
-   * Amazon Cognito によりホストされたログイン画面を表示する。
-   *
-   * @param HttpRequest $request
-   * @return \Illuminate\Routing\Redirector|\Illuminate\Http\RedirectResponse
-   */
-  public function login(HttpRequest $request) {
-    // ログアウトしてセッションを破棄
-    Auth::logout();
-    session()->flush();
-    // ログイン画面にリダイレクト
-    return redirect(CognitoService::getLoginUri(route('auth')));
-  }
-
-  /**
-   * ログアウト後にログイン画面を表示.
-   *
-   * ログアウトエンドポイント経由で Amazon Cognito によりホストされたログイン画面を表示する。
-   *
-   * @param HttpRequest $request
-   * @return \Illuminate\Routing\Redirector|\Illuminate\Http\RedirectResponse
-   */
-  public function reLogin(HttpRequest $request) {
-    // ログアウトしてセッションを破棄
-    Auth::logout();
-    session()->flush();
-    // Cognito側でもログアウトして、ログイン画面を表示する
-    return redirect(CognitoService::getReLoginUri(route('auth')));
-  }
-
-  /**
-   * ログアウト後に任意の画面を表示.
-   *
-   * @param HttpRequest $request
-   * @return \Illuminate\Routing\Redirector|\Illuminate\Http\RedirectResponse
-   */
-  public function logout(HttpRequest $request) {
-    // ログアウトしてセッションを破棄
-    Auth::logout();
-    session()->flush();
-    // ログアウト後に任意の画面を表示
-    return redirect(CognitoService::getLogoutUri(route('frontend')));
-  }
-
-  /**
-   * 認可処理.
+   * 認可API
    *
    * 認可コードは1度使用すると使えなくなるため、同じURIにアクセスするとエラーとなる。
-   * ブラウザリロードによるエラー発生を回避するため、処理後にリダイレクトを行う。
    *
    * @param HttpRequest $request
-   * @return \Illuminate\Routing\Redirector|\Illuminate\Http\RedirectResponse
+   * @return \Illuminate\Http\JsonResponse
    */
   public function auth(HttpRequest $request) {
+    $code = $request->input('code');
+
     // 認可コードとトークンを交換
-    $tokens = CognitoService::requestToken($request->input('code'), route('auth'));
+    $tokens = CognitoService::requestToken($code, route('auth'));
     $accessToken = $tokens['access_token'];
     $refreshToken = $tokens['refresh_token'];
     $expiresIn = $tokens['expires_in'];
@@ -114,27 +69,9 @@ class AuthController extends Controller {
     // Laravel の機能を使ってログイン
     Auth::login($user);
 
-    // 再アクセスによるエラーを防止するためにリダイレクトを行う
-    return redirect(route('frontend'));
-  }
-
-  /**
-   * ログイン済みユーザの情報を取得.
-   *
-   * @param HttpRequest $request
-   * @return \Illuminate\Http\JsonResponse
-   */
-  public function check(HttpRequest $request) {
-    if (auth()->check()) {
-      return response()->json([
-        'status' => 'ok',
-      ]);
-    } else {
-      return response()->json([
-        'status' => 'error',
-        'message' => 'Unauthenticated.'
-      ], 401);
-    }
+    return response()->json([
+      'status' => 'ok',
+    ]);
   }
 
   /**
@@ -143,7 +80,7 @@ class AuthController extends Controller {
    * @param HttpRequest $request
    * @return void
    */
-  public function getUser(HttpRequest $request) {
+  public function user(HttpRequest $request) {
     $user = $request->user();
     return response()->json([
       'id' => $user->id,

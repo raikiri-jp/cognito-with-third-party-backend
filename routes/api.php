@@ -14,10 +14,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// ログインチェックAPI
-Route::get('/auth/check', [AuthController::class, 'check']);
+// 認可API
+Route::get('/auth', [AuthController::class, 'auth']);
 
-// ユーザ情報取得API
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//   return $request->user();
-// });
+// 認証を必要とするAPIのグループ
+Route::middleware('auth:sanctum')->group(function () {
+  // ログインユーザ情報取得API
+  Route::get('/user', [AuthController::class, 'user']);
+});
